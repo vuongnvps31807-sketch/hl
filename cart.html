@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giỏ hàng | WinMart</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+  <header class="store-header">
+    <div class="store-container header-main">
+      <a href="index.html" class="wordmark"><span class="wordmark-w">Win</span>Mart</a>
+      <div class="header-actions">
+        <a href="cart.html" class="header-action">
+          <span class="cart-icon-wrap">🛒<span class="cart-count" data-cart-count>0</span></span>
+          <span class="cart-label">Giỏ hàng</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="store-container page-main">
+    <a href="index.html" class="back-link">← Tiếp tục mua sắm</a>
+    <h1 class="page-title">Giỏ hàng của bạn</h1>
+    <div id="cart"></div>
+  </main>
+
+  <footer class="store-footer">
+    <div class="store-container footer-inner">
+      <span class="wordmark footer-wordmark"><span class="wordmark-w">Win</span>Mart</span>
+      <p>Mua sắm thực phẩm tươi ngon mỗi ngày</p>
+    </div>
+  </footer>
+
+  <script src="products.js"></script>
+  <script>
+    const box = document.getElementById("cart");
+
+    function render() {
+      const cart = wmGetCart();
+      const items = WM_PRODUCTS.filter(p => cart[p.id]);
+
+      if (items.length === 0) {
+        box.innerHTML = `<div class="empty-box"><h2>Giỏ hàng đang trống</h2><p>Hãy chọn vài sản phẩm bạn cần nhé.</p><a class="btn-primary" href="index.html">Xem sản phẩm</a></div>`;
+        return;
+      }
+
+      let total = 0;
+      const rows = items.map(p => {
+        const q = cart[p.id];
+        total += p.price * q;
+        return `
+          <div class="cart-row">
+            <a href="product.html?id=${p.id}"><img src="${p.image}" alt="${p.name}" /></a>
+            <div class="cart-row-info">
+              <a href="product.html?id=${p.id}" class="cart-row-name">${p.name}</a>
+              <span class="cart-row-price">${wmFormat(p.price)}</span>
+            </div>
+            <div class="stepper">
+              <button type="button" data-id="${p.id}" data-d="-1">−</button>
+              <span>${q}</span>
+              <button type="button" data-id="${p.id}" data-d="1">+</button>
+            </div>
+            <strong class="cart-row-sum">${wmFormat(p.price * q)}</strong>
+            <button type="button" class="remove" data-id="${p.id}" data-d="remove">Xóa</button>
+          </div>`;
+      }).join("");
+
+      box.innerHTML = `
+        <div class="cart-list">${rows}</div>
+        <div class="cart-total">
+          <span>Tạm tính</span>
+          <strong>${wmFormat(total)}</strong>
+        </div>
+        <button type="button" class="btn-primary btn-block" onclick="alert('Chức năng thanh toán sẽ được thêm sau.')">Tiến hành đặt hàng</button>`;
+    }
+
+    box.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-id]");
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const cart = wmGetCart();
+      if (btn.dataset.d === "remove") wmSetQty(id, 0);
+      else wmSetQty(id, (cart[id] || 0) + Number(btn.dataset.d));
+      render();
+    });
+
+    render();
+    wmUpdateCartBadge();
+  </script>
+</body>
+</html>

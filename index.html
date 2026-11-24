@@ -665,7 +665,7 @@ function Storefront() {
     className: "product-info"
   }, /*#__PURE__*/React.createElement("span", {
     className: "product-category"
-  }, product.category), /*#__PURE__*/React.createElement("h3", null, product.name), /*#__PURE__*/React.createElement("span", {
+  }, product.category), /*#__PURE__*/React.createElement("h3", null, React.createElement("a", { href: "product.html?id=" + product.id, className: "product-link" }, product.name)), /*#__PURE__*/React.createElement("span", {
     className: "product-unit"
   }, product.unit), /*#__PURE__*/React.createElement("div", {
     className: "product-price-row"

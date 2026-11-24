@@ -1974,3 +1974,7 @@ body {
     transition: none;
   }
 }
+
+/* Liên kết tên sản phẩm mở trang chi tiết */
+.product-link { color: inherit; text-decoration: none; }
+.product-link:hover { color: var(--wm-red); }
