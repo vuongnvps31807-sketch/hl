@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Khám phá ưu đãi mỗi ngày, thực phẩm tươi ngon và hàng tiêu dùng thiết yếu tại WinMart." />
+  <meta property="og:title" content="WinMart | Mua sắm mỗi ngày" />
+  <meta property="og:description" content="Thực phẩm tươi ngon, hàng thiết yếu và ưu đãi hấp dẫn tại WinMart." />
+  <meta property="og:type" content="website" />
+  <title>WinMart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+    <script>
+const {
+  useMemo,
+  useState
+} = React;
+document.title = "WinMart | Mua sắm thực phẩm tươi ngon, giá tốt mỗi ngày";
+
+// ---- Icon shim: lấy dữ liệu icon từ thư viện lucide (UMD) ----
+const toKebab = s => s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+const toCamel = s => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+function makeIcon(name) {
+  const Comp = ({
+    className = "",
+    ...rest
+  }) => {
+    const table = window.lucide && window.lucide.icons || {};
+    const node = table[name] || table[toKebab(name)];
+    const nodes = node && Array.isArray(node[2]) ? node[2] : [];
+    return React.createElement("svg", {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: 20,
+      height: 20,
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: 2,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      className: `lucide lucide-${toKebab(name)} ${className}`.trim(),
+      ...rest
+    }, nodes.map(([tag, attrs], i) => React.createElement(tag, {
+      key: i,
+      ...Object.fromEntries(Object.entries(attrs).map(([k, v]) => [toCamel(k), v]))
+    })));
+  };
+  Comp.displayName = name;
+  return Comp;
+}
+const Apple = makeIcon("Apple");
+const ArrowRight = makeIcon("ArrowRight");
+const BadgePercent = makeIcon("BadgePercent");
+const CakeSlice = makeIcon("CakeSlice");
+const Carrot = makeIcon("Carrot");
+const ChevronDown = makeIcon("ChevronDown");
+const ChevronLeft = makeIcon("ChevronLeft");
+const ChevronRight = makeIcon("ChevronRight");
+const CircleUserRound = makeIcon("CircleUserRound");
+const Coffee = makeIcon("Coffee");
+const Egg = makeIcon("Egg");
+const Fish = makeIcon("Fish");
+const Gift = makeIcon("Gift");
+const Headphones = makeIcon("Headphones");
+const House = makeIcon("House");
+const MapPin = makeIcon("MapPin");
+const Menu = makeIcon("Menu");
+const Milk = makeIcon("Milk");
+const Minus = makeIcon("Minus");
+const Newspaper = makeIcon("Newspaper");
+const Package = makeIcon("Package");
+const Plus = makeIcon("Plus");
+const Search = makeIcon("Search");
+const ShoppingCart = makeIcon("ShoppingCart");
+const Sparkles = makeIcon("Sparkles");
+const Truck = makeIcon("Truck");
+const UserRound = makeIcon("UserRound");
+const X = makeIcon("X");
+
+// ---- Button shim: thay cho shadcn/ui Button ----
+function Button({
+  variant,
+  size,
+  className = "",
+  ...props
+}) {
+  const cls = [className, variant === "default" ? "is-active" : "", size === "icon" ? "btn-icon" : ""].join(" ").trim();
+  return React.createElement("button", {
+    ...props,
+    className: cls
+  });
+}
+const formatPriceUnused = null;
+const products = [{
+  id: "coconut-cookie",
+  name: "Bánh vừng dừa Bảo Ngọc gói 60g",
+  price: 18000,
+  oldPrice: 22000,
+  category: "Bánh kẹo",
+  unit: "Gói 60g",
+  image: "assets/croissant.jpg",
+  discount: 18,
+  badge: "Quà tặng"
+}, {
+  id: "chinsu-soy",
+  name: "CHIN-SU Nước tương tự nhiên 120 ngày 300ml",
+  price: 25000,
+  oldPrice: 32000,
+  category: "Gia vị",
+  unit: "Chai 300ml",
+  image: "assets/chinsu-soy.jpg",
+  discount: 22,
+  badge: "Giá tốt"
+}, {
+  id: "seafood-dumplings",
+  name: "LC FOODS Bánh xếp hải sản rau củ 350g",
+  price: 54000,
+  oldPrice: 69000,
+  category: "Thực phẩm đông lạnh",
+  unit: "Gói 350g",
+  image: "assets/dumplings.png",
+  discount: 22,
+  badge: "Bán chạy"
+}, {
+  id: "jinju-rice-cake",
+  name: "JINJU Bánh gạo muối hồng 134.4g",
+  price: 28000,
+  oldPrice: 35000,
+  category: "Bánh kẹo",
+  unit: "Gói 134.4g",
+  image: "assets/rice-cake.jpg",
+  discount: 20,
+  badge: "Mới"
+}, {
+  id: "blueberry-tea",
+  name: "Trà việt quất TVT chai 470ml",
+  price: 12000,
+  oldPrice: 16000,
+  category: "Đồ uống - giải khát",
+  unit: "Chai 470ml",
+  image: "assets/blueberry-tea.png",
+  discount: 25,
+  badge: "Giá tốt"
+}, {
+  id: "kitkool-fish-balls",
+  name: "Cá viên Kitkool 200g",
+  price: 26000,
+  oldPrice: 35000,
+  category: "Thực phẩm đông lạnh",
+  unit: "Gói 200g",
+  image: "assets/fish-balls.png",
+  discount: 26,
+  badge: "Quà tặng"
+}];
+const categories = [{
+  label: "Rau - Củ - Trái Cây",
+  icon: Carrot,
+  tone: "green"
+}, {
+  label: "Thịt - Hải Sản",
+  icon: Fish,
+  tone: "coral"
+}, {
+  label: "Sữa các loại",
+  icon: Milk,
+  tone: "blue"
+}, {
+  label: "Đồ uống - giải khát",
+  icon: Coffee,
+  tone: "orange"
+}, {
+  label: "Bánh kẹo",
+  icon: CakeSlice,
+  tone: "pink"
+}, {
+  label: "Trứng - Đậu Hũ",
+  icon: Egg,
+  tone: "yellow"
+}, {
+  label: "Đồ dùng gia đình",
+  icon: House,
+  tone: "teal"
+}, {
+  label: "Thực phẩm khô",
+  icon: Package,
+  tone: "green"
+}];
+const menuCategories = ["Giá Siêu Rẻ", "Ưu Đãi Hội Viên", "Rau - Củ - Trái Cây", "Thịt - Hải Sản Tươi", "Sữa các loại", "Bánh Kẹo", "Đồ Uống - Giải Khát", "Mì - Thực Phẩm Ăn Liền", "Thực Phẩm Đông Lạnh", "Gia vị", "Đồ Dùng Gia Đình", "Chăm Sóc Bé"];
+const campaigns = [{
+  eyebrow: "MUA SẮM THẢ GA",
+  title: "Mỗi ngày thêm vui,\ntiết kiệm thêm nhiều",
+  description: "Săn giá tốt cho cả nhà — giao tận nơi, tươi ngon mỗi ngày.",
+  button: "Khám phá ưu đãi",
+  productId: "seafood-dumplings",
+  badge: "Ưu đãi hôm nay"
+}, {
+  eyebrow: "BỮA NGON GỌN NHẸ",
+  title: "Đầy đủ món ngon,\nnhà mình cùng vui",
+  description: "Chọn nhanh món ngon và nguyên liệu tiện lợi cho bữa cơm nhà.",
+  button: "Mua sắm ngay",
+  productId: "chinsu-soy",
+  badge: "Gợi ý từ WinMart"
+}, {
+  eyebrow: "ƯU ĐÃI MỖI NGÀY",
+  title: "Giá thật dễ chịu,\nchất lượng yên tâm",
+  description: "Thêm lựa chọn cho tủ bếp, tủ lạnh và những giờ thư giãn.",
+  button: "Xem sản phẩm",
+  productId: "blueberry-tea",
+  badge: "Giá tốt mỗi ngày"
+}];
+const formatPrice = price => new Intl.NumberFormat("vi-VN", {
+  style: "currency",
+  currency: "VND",
+  maximumFractionDigits: 0
+}).format(price);
+function Storefront() {
+  const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("Tất cả sản phẩm");
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cart, setCart] = useState({});
+  const [activeCampaign, setActiveCampaign] = useState(0);
+  const [selectedCity, setSelectedCity] = useState("Hà Nội");
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [memberOpen, setMemberOpen] = useState(false);
+  const [savedVoucher, setSavedVoucher] = useState(false);
+  const [checkoutMessage, setCheckoutMessage] = useState(false);
+  const filteredProducts = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("vi");
+    return products.filter(product => {
+      const matchesCategory = activeCategory === "Tất cả sản phẩm" || product.category === activeCategory;
+      const matchesQuery = normalizedQuery.length === 0 || product.name.toLocaleLowerCase("vi").includes(normalizedQuery) || product.category.toLocaleLowerCase("vi").includes(normalizedQuery);
+      return matchesCategory && matchesQuery;
+    });
+  }, [activeCategory, query]);
+  const cartItems = products.filter(product => (cart[product.id] ?? 0) > 0);
+  const cartCount = Object.values(cart).reduce((total, amount) => total + amount, 0);
+  const subtotal = cartItems.reduce((total, product) => total + product.price * (cart[product.id] ?? 0), 0);
+  const campaign = campaigns[activeCampaign];
+  if (!campaign) return null;
+  const chooseCategory = category => {
+    setActiveCategory(category);
+    setCategoryMenuOpen(false);
+    document.getElementById("deals")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  };
+  const updateQuantity = (productId, quantity) => {
+    setCart(currentCart => {
+      const nextCart = {
+        ...currentCart
+      };
+      if (quantity <= 0) {
+        delete nextCart[productId];
+      } else {
+        nextCart[productId] = quantity;
+      }
+      return nextCart;
+    });
+    setCheckoutMessage(false);
+  };
+  const addToCart = product => {
+    setCart(currentCart => ({
+      ...currentCart,
+      [product.id]: (currentCart[product.id] ?? 0) + 1
+    }));
+    setCartOpen(true);
+    setCheckoutMessage(false);
+  };
+  const submitSearch = event => {
+    event.preventDefault();
+    document.getElementById("deals")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "storefront",
+    id: "top"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "announcement-bar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "store-container announcement-inner"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement(Sparkles, {
+    "aria-hidden": "true"
+  }), " Mua s\u1EAFm vui h\u01A1n, \u01B0u \u0111\xE3i nhi\u1EC1u h\u01A1n"), /*#__PURE__*/React.createElement("span", {
+    className: "announcement-right"
+  }, /*#__PURE__*/React.createElement(Truck, {
+    "aria-hidden": "true"
+  }), " Giao nhanh t\u1EADn nh\xE0"))), /*#__PURE__*/React.createElement("header", {
+    className: "store-header"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "store-container header-main"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "#top",
+    className: "wordmark",
+    "aria-label": "WinMart, trang ch\u1EE7"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "wordmark-w"
+  }, "W"), "inMart", /*#__PURE__*/React.createElement("span", {
+    className: "wordmark-dot"
+  }, ".")), /*#__PURE__*/React.createElement("form", {
+    className: "search-form",
+    onSubmit: submitSearch,
+    role: "search"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "visually-hidden",
+    htmlFor: "store-search"
+  }, "T\xECm ki\u1EBFm s\u1EA3n ph\u1EA9m"), /*#__PURE__*/React.createElement(Search, {
+    "aria-hidden": "true",
+    className: "search-icon"
+  }), /*#__PURE__*/React.createElement("input", {
+    id: "store-search",
+    type: "search",
+    value: query,
+    onChange: event => setQuery(event.target.value),
+    placeholder: "T\xECm s\u1EA3n ph\u1EA9m, th\u01B0\u01A1ng hi\u1EC7u..."
+  }), /*#__PURE__*/React.createElement(Button, {
+    type: "submit",
+    size: "icon",
+    variant: "ghost",
+    className: "search-submit",
+    "aria-label": "T\xECm ki\u1EBFm"
+  }, /*#__PURE__*/React.createElement(ArrowRight, {
+    "aria-hidden": "true"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "header-actions"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "header-action-wrap"
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "ghost",
+    className: "header-action delivery-button",
+    "aria-expanded": locationOpen,
+    onClick: () => {
+      setLocationOpen(!locationOpen);
+      setMemberOpen(false);
+    }
+  }, /*#__PURE__*/React.createElement(MapPin, {
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("small", null, "Giao h\xE0ng \u0111\u1EBFn"), /*#__PURE__*/React.createElement("strong", null, selectedCity)), /*#__PURE__*/React.createElement(ChevronDown, {
+    "aria-hidden": "true",
+    className: "action-chevron"
+  })), locationOpen && /*#__PURE__*/React.createElement("div", {
+    className: "header-popover location-popover"
+  }, /*#__PURE__*/React.createElement("strong", null, "Ch\u1ECDn khu v\u1EF1c giao h\xE0ng"), ["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng"].map(city => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: selectedCity === city ? "popover-option is-selected" : "popover-option",
+    key: city,
+    onClick: () => {
+      setSelectedCity(city);
+      setLocationOpen(false);
+    }
+  }, /*#__PURE__*/React.createElement(MapPin, {
+    "aria-hidden": "true"
+  }), " ", city)))), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "ghost",
+    className: "header-action cart-trigger",
+    "aria-label": `Giỏ hàng, ${cartCount} sản phẩm`,
+    onClick: () => setCartOpen(true)
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "cart-icon-wrap"
+  }, /*#__PURE__*/React.createElement(ShoppingCart, {
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "cart-count"
+  }, cartCount)), /*#__PURE__*/React.createElement("span", {
+    className: "cart-label"
+  }, "Gi\u1ECF h\xE0ng")), /*#__PURE__*/React.createElement("div", {
+    className: "header-action-wrap member-wrap"
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "ghost",
+    className: "header-action member-button",
+    "aria-expanded": memberOpen,
+    onClick: () => {
+      setMemberOpen(!memberOpen);
+      setLocationOpen(false);
+    }
+  }, /*#__PURE__*/React.createElement(UserRound, {
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", null, "H\u1ED9i vi\xEAn")), memberOpen && /*#__PURE__*/React.createElement("div", {
+    className: "header-popover member-popover"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "member-popover-icon"
+  }, /*#__PURE__*/React.createElement(CircleUserRound, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("strong", null, "\u0110\u1EB7c quy\u1EC1n h\u1ED9i vi\xEAn"), /*#__PURE__*/React.createElement("p", null, "Kh\xE1m ph\xE1 \u01B0u \u0111\xE3i ri\xEAng v\xE0 t\xEDch l\u0169y th\xEAm ni\u1EC1m vui mua s\u1EAFm."), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    size: "sm",
+    className: "popover-cta",
+    onClick: () => setMemberOpen(false)
+  }, "Kh\xE1m ph\xE1 \u01B0u \u0111\xE3i ", /*#__PURE__*/React.createElement(ArrowRight, {
+    "aria-hidden": "true"
+  }))))))), /*#__PURE__*/React.createElement("nav", {
+    className: "secondary-nav",
+    "aria-label": "\u0110i\u1EC1u h\u01B0\u1EDBng ch\xEDnh"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "store-container secondary-nav-inner"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "category-menu-wrap"
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "ghost",
+    className: "category-menu-trigger",
+    "aria-expanded": categoryMenuOpen,
+    onClick: () => setCategoryMenuOpen(!categoryMenuOpen)
+  }, /*#__PURE__*/React.createElement(Menu, {
+    "aria-hidden": "true"
+  }), " Danh m\u1EE5c s\u1EA3n ph\u1EA9m ", /*#__PURE__*/React.createElement(ChevronDown, {
+    "aria-hidden": "true"
+  })), categoryMenuOpen && /*#__PURE__*/React.createElement("div", {
+    className: "category-mega-menu"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mega-menu-heading"
+  }, /*#__PURE__*/React.createElement("span", null, "Mua s\u1EAFm theo danh m\u1EE5c"), /*#__PURE__*/React.createElement(BadgePercent, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mega-menu-grid"
+  }, menuCategories.map((category, index) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    key: category,
+    className: "mega-menu-link",
+    onClick: () => chooseCategory(index < 2 ? "Tất cả sản phẩm" : category)
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mega-menu-bullet"
+  }, String(index + 1).padStart(2, "0")), category, /*#__PURE__*/React.createElement(ArrowRight, {
+    "aria-hidden": "true"
+  })))))), /*#__PURE__*/React.createElement("div", {
+    className: "secondary-links"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "#deals"
+  }, /*#__PURE__*/React.createElement(Newspaper, {
+    "aria-hidden": "true"
+  }), " Tin t\u1EE9c WinMart"), /*#__PURE__*/React.createElement("a", {
+    href: "#service"
+  }, /*#__PURE__*/React.createElement(Headphones, {
+    "aria-hidden": "true"
+  }), " T\u01B0 v\u1EA5n mua h\xE0ng"), /*#__PURE__*/React.createElement("a", {
+    href: "#categories",
+    className: "member-link"
+  }, /*#__PURE__*/React.createElement(Sparkles, {
+    "aria-hidden": "true"
+  }), " \u01AFu \u0111\xE3i h\u1ED9i vi\xEAn")))), /*#__PURE__*/React.createElement("main", null, /*#__PURE__*/React.createElement("section", {
+    className: "store-container hero-layout",
+    "aria-label": "\u01AFu \u0111\xE3i n\u1ED5i b\u1EADt"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "campaign-hero"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "campaign-copy"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "campaign-eyebrow"
+  }, /*#__PURE__*/React.createElement(Sparkles, {
+    "aria-hidden": "true"
+  }), " ", campaign.eyebrow), /*#__PURE__*/React.createElement("h1", null, campaign.title), /*#__PURE__*/React.createElement("p", null, campaign.description), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    className: "campaign-cta",
+    onClick: () => document.getElementById("deals")?.scrollIntoView({
+      behavior: "smooth"
+    })
+  }, campaign.button, " ", /*#__PURE__*/React.createElement(ArrowRight, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "campaign-dots",
+    "aria-label": "Ch\u1ECDn ch\u01B0\u01A1ng tr\xECnh"
+  }, campaigns.map((item, index) => /*#__PURE__*/React.createElement("button", {
+    key: item.eyebrow,
+    type: "button",
+    "aria-label": `Chương trình ${index + 1}`,
+    "aria-current": activeCampaign === index ? "true" : undefined,
+    className: activeCampaign === index ? "campaign-dot is-active" : "campaign-dot",
+    onClick: () => setActiveCampaign(index)
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "campaign-product"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "campaign-product-label"
+  }, /*#__PURE__*/React.createElement(Gift, {
+    "aria-hidden": "true"
+  }), " ", campaign.badge), /*#__PURE__*/React.createElement("div", {
+    className: "campaign-product-shape",
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("img", {
+    src: products.find(product => product.id === campaign.productId)?.image ?? products[0]?.image,
+    alt: "S\u1EA3n ph\u1EA9m \u0111ang c\xF3 \u01B0u \u0111\xE3i t\u1EA1i WinMart"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "campaign-sparkle sparkle-one"
+  }, /*#__PURE__*/React.createElement(Sparkles, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "campaign-sparkle sparkle-two"
+  }, /*#__PURE__*/React.createElement(Sparkles, {
+    "aria-hidden": "true"
+  }))), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    size: "icon",
+    variant: "ghost",
+    className: "campaign-arrow campaign-arrow-left",
+    "aria-label": "\u01AFu \u0111\xE3i tr\u01B0\u1EDBc",
+    onClick: () => setActiveCampaign((activeCampaign + campaigns.length - 1) % campaigns.length)
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    size: "icon",
+    variant: "ghost",
+    className: "campaign-arrow campaign-arrow-right",
+    "aria-label": "\u01AFu \u0111\xE3i ti\u1EBFp theo",
+    onClick: () => setActiveCampaign((activeCampaign + 1) % campaigns.length)
+  }, /*#__PURE__*/React.createElement(ChevronRight, {
+    "aria-hidden": "true"
+  }))), /*#__PURE__*/React.createElement("aside", {
+    className: "voucher-panel",
+    "aria-label": "\u01AFu \u0111\xE3i h\u1ED9i vi\xEAn"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "voucher-topline"
+  }, /*#__PURE__*/React.createElement("span", null, "WINMART+"), /*#__PURE__*/React.createElement(Sparkles, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "voucher-stamp"
+  }, /*#__PURE__*/React.createElement(Gift, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "voucher-kicker"
+  }, "\u01AFU \u0110\xC3I D\xC0NH RI\xCANG CHO B\u1EA0N"), /*#__PURE__*/React.createElement("h2", null, "Gi\u1EA3m th\xEAm"), /*#__PURE__*/React.createElement("div", {
+    className: "voucher-value"
+  }, "20", /*#__PURE__*/React.createElement("span", null, "K")), /*#__PURE__*/React.createElement("p", {
+    className: "voucher-description"
+  }, "L\u01B0u \u01B0u \u0111\xE3i v\xE0 ch\u1ECDn m\xF3n y\xEAu th\xEDch h\xF4m nay."), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "outline",
+    className: savedVoucher ? "voucher-button is-saved" : "voucher-button",
+    onClick: () => setSavedVoucher(!savedVoucher)
+  }, savedVoucher ? "Đã lưu ưu đãi" : "Lưu ưu đãi", " ", /*#__PURE__*/React.createElement(ArrowRight, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "voucher-decoration voucher-decoration-one",
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "voucher-decoration voucher-decoration-two",
+    "aria-hidden": "true"
+  }))), /*#__PURE__*/React.createElement("section", {
+    className: "store-container service-strip",
+    id: "service",
+    "aria-label": "D\u1ECBch v\u1EE5 WinMart"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "service-item"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "service-icon service-icon-red"
+  }, /*#__PURE__*/React.createElement(Truck, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, "Giao h\xE0ng nhanh"), /*#__PURE__*/React.createElement("small", null, "T\u1EADn nh\xE0 ti\u1EC7n l\u1EE3i"))), /*#__PURE__*/React.createElement("div", {
+    className: "service-item"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "service-icon service-icon-green"
+  }, /*#__PURE__*/React.createElement(Apple, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, "T\u01B0\u01A1i ngon m\u1ED7i ng\xE0y"), /*#__PURE__*/React.createElement("small", null, "Ch\u1ECDn l\u1EF1a k\u1EF9 c\xE0ng"))), /*#__PURE__*/React.createElement("div", {
+    className: "service-item"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "service-icon service-icon-yellow"
+  }, /*#__PURE__*/React.createElement(BadgePercent, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, "Gi\xE1 t\u1ED1t m\u1ED7i ng\xE0y"), /*#__PURE__*/React.createElement("small", null, "Nhi\u1EC1u \u01B0u \u0111\xE3i h\u1EA5p d\u1EABn"))), /*#__PURE__*/React.createElement("div", {
+    className: "service-item"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "service-icon service-icon-blue"
+  }, /*#__PURE__*/React.createElement(CircleUserRound, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("strong", null, "\u01AFu \u0111\xE3i h\u1ED9i vi\xEAn"), /*#__PURE__*/React.createElement("small", null, "Th\xEAm quy\u1EC1n l\u1EE3i ri\xEAng")))), /*#__PURE__*/React.createElement("section", {
+    className: "store-container category-section",
+    id: "categories"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-heading category-heading"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "section-eyebrow"
+  }, "CH\u1ECCN NHANH H\xD4M NAY"), /*#__PURE__*/React.createElement("h2", null, "Mua s\u1EAFm theo danh m\u1EE5c")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "text-link",
+    onClick: () => chooseCategory("Tất cả sản phẩm")
+  }, "Xem t\u1EA5t c\u1EA3 ", /*#__PURE__*/React.createElement(ArrowRight, {
+    "aria-hidden": "true"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "category-grid"
+  }, categories.map(({
+    label,
+    icon: Icon,
+    tone
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: label,
+    type: "button",
+    className: "category-tile",
+    onClick: () => chooseCategory(products.some(product => product.category === label) ? label : "Tất cả sản phẩm")
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `category-icon category-icon-${tone}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement(ArrowRight, {
+    "aria-hidden": "true",
+    className: "category-arrow"
+  }))))), /*#__PURE__*/React.createElement("section", {
+    className: "deals-band"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "store-container deals-content",
+    id: "deals"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-heading deals-heading"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "deals-title-wrap"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "deals-title-icon"
+  }, /*#__PURE__*/React.createElement(Gift, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "section-eyebrow"
+  }, "MUA L\xC0 C\xD3 \u01AFU \u0110\xC3I"), /*#__PURE__*/React.createElement("h2", null, "\u01AFu \u0111\xE3i h\xF4m nay"))), /*#__PURE__*/React.createElement("div", {
+    className: "deal-timer"
+  }, /*#__PURE__*/React.createElement("span", null, "Gi\xE1 t\u1ED1t trong ng\xE0y"), /*#__PURE__*/React.createElement("strong", null, "Ch\u1ECDn m\xF3n y\xEAu th\xEDch"))), /*#__PURE__*/React.createElement("div", {
+    className: "deal-toolbar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "category-filters",
+    "aria-label": "L\u1ECDc theo danh m\u1EE5c"
+  }, ["Tất cả sản phẩm", "Bánh kẹo", "Gia vị", "Thực phẩm đông lạnh", "Đồ uống - giải khát"].map(category => /*#__PURE__*/React.createElement(Button, {
+    key: category,
+    type: "button",
+    variant: activeCategory === category ? "default" : "ghost",
+    className: "filter-chip",
+    onClick: () => setActiveCategory(category)
+  }, category))), /*#__PURE__*/React.createElement("span", {
+    className: "sample-price-note"
+  }, "Gi\xE1 tham kh\u1EA3o")), filteredProducts.length > 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "product-grid"
+  }, filteredProducts.map(product => /*#__PURE__*/React.createElement("article", {
+    className: "product-card",
+    key: product.id
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "product-photo-wrap"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "product-discount"
+  }, "-", product.discount, "%"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "product-save",
+    "aria-label": `Lưu ${product.name}`
+  }, /*#__PURE__*/React.createElement(Sparkles, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("img", {
+    className: "product-photo",
+    src: product.image,
+    alt: product.name,
+    loading: "lazy"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "product-badge"
+  }, /*#__PURE__*/React.createElement(Gift, {
+    "aria-hidden": "true"
+  }), " ", product.badge)), /*#__PURE__*/React.createElement("div", {
+    className: "product-info"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "product-category"
+  }, product.category), /*#__PURE__*/React.createElement("h3", null, product.name), /*#__PURE__*/React.createElement("span", {
+    className: "product-unit"
+  }, product.unit), /*#__PURE__*/React.createElement("div", {
+    className: "product-price-row"
+  }, /*#__PURE__*/React.createElement("strong", null, formatPrice(product.price)), /*#__PURE__*/React.createElement("del", null, formatPrice(product.oldPrice))), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "outline",
+    className: "add-button",
+    onClick: () => addToCart(product)
+  }, /*#__PURE__*/React.createElement(Plus, {
+    "aria-hidden": "true"
+  }), " Th\xEAm v\xE0o gi\u1ECF"))))) : /*#__PURE__*/React.createElement("div", {
+    className: "empty-results"
+  }, /*#__PURE__*/React.createElement(Search, {
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("h3", null, "Ch\u01B0a t\xECm th\u1EA5y s\u1EA3n ph\u1EA9m ph\xF9 h\u1EE3p"), /*#__PURE__*/React.createElement("p", null, "Th\u1EED m\u1ED9t t\u1EEB kh\xF3a kh\xE1c ho\u1EB7c xem to\xE0n b\u1ED9 s\u1EA3n ph\u1EA9m."), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "outline",
+    onClick: () => {
+      setQuery("");
+      setActiveCategory("Tất cả sản phẩm");
+    }
+  }, "Xem t\u1EA5t c\u1EA3 s\u1EA3n ph\u1EA9m")))), /*#__PURE__*/React.createElement("footer", {
+    className: "store-footer"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "store-container footer-inner"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "#top",
+    className: "wordmark footer-wordmark"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "wordmark-w"
+  }, "W"), "inMart", /*#__PURE__*/React.createElement("span", {
+    className: "wordmark-dot"
+  }, ".")), /*#__PURE__*/React.createElement("p", null, "Ch\u1ECDn m\xF3n ngon, ch\u0103m ch\xFAt t\u1EEBng ng\xE0y."), /*#__PURE__*/React.createElement("span", null, "\xA9 WinMart \xB7 Giao di\u1EC7n minh h\u1ECDa")))), /*#__PURE__*/React.createElement("nav", {
+    className: "mobile-bottom-nav",
+    "aria-label": "\u0110i\u1EC1u h\u01B0\u1EDBng nhanh"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "#top"
+  }, /*#__PURE__*/React.createElement(House, {
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", null, "Trang ch\u1EE7")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setCategoryMenuOpen(!categoryMenuOpen)
+  }, /*#__PURE__*/React.createElement(Menu, {
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", null, "Danh m\u1EE5c")), /*#__PURE__*/React.createElement("a", {
+    href: "#deals"
+  }, /*#__PURE__*/React.createElement(BadgePercent, {
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", null, "\u01AFu \u0111\xE3i")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setCartOpen(true)
+  }, /*#__PURE__*/React.createElement(ShoppingCart, {
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", null, "Gi\u1ECF h\xE0ng"), /*#__PURE__*/React.createElement("b", null, cartCount))), cartOpen && /*#__PURE__*/React.createElement("div", {
+    className: "cart-overlay",
+    role: "presentation",
+    onMouseDown: event => {
+      if (event.target === event.currentTarget) setCartOpen(false);
+    }
+  }, /*#__PURE__*/React.createElement("aside", {
+    className: "cart-drawer",
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-labelledby": "cart-title"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cart-drawer-header"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "section-eyebrow"
+  }, "WINMART ONLINE"), /*#__PURE__*/React.createElement("h2", {
+    id: "cart-title"
+  }, "Gi\u1ECF h\xE0ng ", /*#__PURE__*/React.createElement("span", null, "(", cartCount, ")"))), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    size: "icon",
+    variant: "ghost",
+    "aria-label": "\u0110\xF3ng gi\u1ECF h\xE0ng",
+    onClick: () => setCartOpen(false)
+  }, /*#__PURE__*/React.createElement(X, {
+    "aria-hidden": "true"
+  }))), cartItems.length > 0 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "cart-items"
+  }, cartItems.map(product => /*#__PURE__*/React.createElement("div", {
+    className: "cart-item",
+    key: product.id
+  }, /*#__PURE__*/React.createElement("img", {
+    src: product.image,
+    alt: ""
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "cart-item-info"
+  }, /*#__PURE__*/React.createElement("span", null, product.category), /*#__PURE__*/React.createElement("strong", null, product.name), /*#__PURE__*/React.createElement("b", null, formatPrice(product.price))), /*#__PURE__*/React.createElement("div", {
+    className: "quantity-stepper",
+    "aria-label": `Số lượng ${product.name}`
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    size: "icon",
+    variant: "outline",
+    "aria-label": "Gi\u1EA3m s\u1ED1 l\u01B0\u1EE3ng",
+    onClick: () => updateQuantity(product.id, (cart[product.id] ?? 0) - 1)
+  }, /*#__PURE__*/React.createElement(Minus, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("span", null, cart[product.id] ?? 0), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    size: "icon",
+    variant: "outline",
+    "aria-label": "T\u0103ng s\u1ED1 l\u01B0\u1EE3ng",
+    onClick: () => updateQuantity(product.id, (cart[product.id] ?? 0) + 1)
+  }, /*#__PURE__*/React.createElement(Plus, {
+    "aria-hidden": "true"
+  })))))), /*#__PURE__*/React.createElement("div", {
+    className: "cart-summary"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, "T\u1EA1m t\xEDnh"), /*#__PURE__*/React.createElement("strong", null, formatPrice(subtotal))), /*#__PURE__*/React.createElement("small", null, "Ph\xED giao h\xE0ng s\u1EBD \u0111\u01B0\u1EE3c t\xEDnh khi x\xE1c nh\u1EADn \u0111\u01A1n."), checkoutMessage && /*#__PURE__*/React.createElement("p", {
+    className: "checkout-note"
+  }, "\u0110\xE2y l\xE0 giao di\u1EC7n minh h\u1ECDa \u2014 ch\u01B0a k\u1EBFt n\u1ED1i \u0111\u1EB7t h\xE0ng."), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    className: "checkout-button",
+    onClick: () => setCheckoutMessage(true)
+  }, "Ti\u1EBFp t\u1EE5c \u0111\u1EB7t h\xE0ng ", /*#__PURE__*/React.createElement(ArrowRight, {
+    "aria-hidden": "true"
+  })))) : /*#__PURE__*/React.createElement("div", {
+    className: "empty-cart"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "empty-cart-icon"
+  }, /*#__PURE__*/React.createElement(ShoppingCart, {
+    "aria-hidden": "true"
+  })), /*#__PURE__*/React.createElement("h3", null, "Gi\u1ECF h\xE0ng \u0111ang tr\u1ED1ng"), /*#__PURE__*/React.createElement("p", null, "Th\xEAm m\xF3n y\xEAu th\xEDch \u0111\u1EC3 b\u1EAFt \u0111\u1EA7u mua s\u1EAFm nh\xE9."), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    className: "checkout-button",
+    onClick: () => setCartOpen(false)
+  }, "Kh\xE1m ph\xE1 s\u1EA3n ph\u1EA9m")))));
+}
+ReactDOM.createRoot(document.getElementById("root")).render( /*#__PURE__*/React.createElement(Storefront, null));
+</script>
+</body>
+</html>
